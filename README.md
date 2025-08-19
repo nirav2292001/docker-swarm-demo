@@ -7,82 +7,48 @@ A scalable translation service built with FastAPI backend and React frontend, de
 This project consists of:
 - **Backend**: FastAPI service with Hugging Face transformers for English-to-German translation
 - **Frontend**: React web application for user interface
-- **MLflow**: Experiment tracking and model monitoring
 - **Docker Swarm**: Container orchestration for scalability
 
 ## 📋 Prerequisites
 
 - Docker Engine 20.10+ with Swarm mode enabled
 - Docker Compose v3.8+
-- At least 4GB RAM (for ML model loading)
-- Node.js 18+ (for local development)
-- Python 3.12+ (for local development)
+- At least 2GB RAM (for ML model loading)
 
 ## 🚀 Quick Start
 
-### Option 1: Complete Setup with Monitoring (Recommended)
-
-**Just clone and run!** This is the simplest way to get everything running:
+**Just clone and run!** Here's the simple setup:
 
 ```bash
 # 1. Clone the repository
-git clone <your-repo-url>
-cd <repo-name>
+git clone https://github.com/nirav2292001/docker-swarm-demo
+cd docker-swarm-demo
 
 # 2. Initialize Docker Swarm (if not already done)
 docker swarm init
 
 # 3. Build images
-./build-images.sh  # or build manually (see below)
-
-# 4. Setup monitoring stack
-chmod +x setup-monitoring.sh
-./setup-monitoring.sh
-
-# 5. Deploy translation app with integrated monitoring
-export REACT_APP_API_URL=http://localhost:8000
-docker stack deploy -c docker-compose.integrated.yml translation-app
-```
-
-**That's it!** Your complete stack is now running with monitoring.
-
-### Manual Image Building (if build script doesn't exist)
-
-```bash
-# Build backend image
 cd backend
 docker build -t backend:latest .
-
-# Build frontend image
 cd ../frontend
 docker build -t frontend:latest --build-arg REACT_APP_API_URL=http://localhost:8000 .
 cd ..
-```
 
-### Option 2: Basic Setup (Without Monitoring)
-
-```bash
-# 1. Initialize Docker Swarm
-docker swarm init
-
-# 2. Build images (see manual building above)
-
-# 3. Deploy basic stack
+# 4. Deploy the stack
 export REACT_APP_API_URL=http://localhost:8000
 docker stack deploy -c docker-compose.yml translation-app
 ```
 
+**That's it!** Your scalable translation service is now running.
+
 ### 🔍 Verify Deployment
 
 ```bash
-# Check all services
+# Check services
 docker service ls
 
-# Check translation app services
+# Check service status
 docker stack ps translation-app
-
-# Check monitoring services (if deployed)
-docker stack ps monitoring
 
 # View service logs
 docker service logs translation-app_backend
@@ -91,16 +57,9 @@ docker service logs translation-app_frontend
 
 ### 🌐 Access Your Application
 
-**Translation Service:**
 - **Frontend**: http://localhost (port 80)
 - **Backend API**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/docs
-
-**Monitoring Dashboard (if deployed with integrated setup):**
-- **Grafana**: http://localhost:3000 (admin/admin123)
-- **Prometheus**: http://localhost:9090
-- **Node Exporter**: http://localhost:9100
-- **cAdvisor**: http://localhost:8080
 
 ## � Monitorivng & Observability
 
@@ -122,71 +81,7 @@ Tracked metrics include:
 - Model parameters
 - Input/output artifacts
 
-### Prometheus & Grafana Stack
-When deployed with the integrated setup, you get comprehensive monitoring:
 
-**Metrics Collected:**
-- Container resource usage (CPU, memory, network, disk)
-- Docker Swarm cluster health
-- Service availability and response times
-- Custom application metrics
-- System-level metrics from all nodes
-
-**Pre-configured Dashboards:**
-- Docker Swarm Overview
-- Container Resource Usage
-- Service Performance Metrics
-- Node Health Monitoring
-
-**Accessing Monitoring:**
-```bash
-# Grafana (main dashboard)
-open http://localhost:3000
-# Default login: admin/admin123
-
-# Prometheus (raw metrics)
-open http://localhost:9090
-
-# Check monitoring stack status
-docker service ls | grep monitoring
-```
-
-## 🔧 Local Development
-
-### Backend Development
-
-```bash
-cd backend
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run development server
-python main.py
-```
-
-The backend will be available at http://localhost:8000
-
-### Frontend Development
-
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Set API URL for development
-export REACT_APP_API_URL=http://localhost:8000
-
-# Start development server
-npm start
-```
-
-The frontend will be available at http://localhost:3000
 
 ## 🐳 Docker Swarm Configuration
 
@@ -228,60 +123,7 @@ Docker Swarm provides built-in load balancing:
 3. **Rolling Updates**: Zero-downtime deployments
 4. **Multi-node Support**: Distribute services across multiple Docker hosts
 
-## 📊 Monitoring
 
-### MLflow Integration
-
-The backend automatically logs translation metrics:
-
-```bash
-# View MLflow logs locally
-cd backend
-ls mlflow_logs/
-
-# Access MLflow UI (when running locally)
-mlflow ui --backend-store-uri file:./mlflow_logs
-```
-
-Tracked metrics include:
-- Translation inference time
-- Input text length
-- Model parameters
-- Input/output artifacts
-
-### Prometheus & Grafana Monitoring Stack
-
-Deploy a comprehensive monitoring solution with Prometheus and Grafana:
-
-```bash
-# Create required volumes and network
-docker volume create prometheus_data
-docker volume create grafana_data
-docker volume create alertmanager_data
-docker network create --driver overlay --attachable monitoring_monitoring
-
-# Deploy monitoring stack
-docker stack deploy -c docker-compose.monitoring.yml monitoring
-
-# Deploy translation app with monitoring integration
-docker stack deploy -c docker-compose.integrated.yml translation-app
-```
-
-**Access Points:**
-- **Grafana**: http://localhost:3000 (admin/admin123)
-- **Prometheus**: http://localhost:9090
-- **AlertManager**: http://localhost:9093
-- **Node Exporter**: http://localhost:9100
-- **cAdvisor**: http://localhost:8080
-
-**Monitored Metrics:**
-- System resources (CPU, memory, disk, network)
-- Container performance and health
-- Application response times and error rates
-- Docker Swarm service status
-- Custom translation service metrics
-
-See [MONITORING.md](MONITORING.md) for detailed setup and configuration instructions.
 
 ## 🔄 Production Deployment
 
@@ -440,29 +282,27 @@ curl -X POST "http://localhost:8000/translate" \
 
 ## ⚡ TL;DR - Super Quick Setup
 
-**Yes, you can just clone and run the integrated file!** Here's the minimal setup:
+**Yes, you can just clone and run!** Here's the minimal setup:
 
 ```bash
 # Clone repo
-git clone <your-repo-url>
-cd <repo-name>
+git clone https://github.com/nirav2292001/docker-swarm-demo
+cd docker-swarm-demo
 
 # One-time setup
 docker swarm init
-chmod +x *.sh
-./build-images.sh
-./setup-monitoring.sh
 
-# Deploy everything
+# Build and deploy
+cd backend && docker build -t backend:latest . && cd ..
+cd frontend && docker build -t frontend:latest --build-arg REACT_APP_API_URL=http://localhost:8000 . && cd ..
 export REACT_APP_API_URL=http://localhost:8000
-docker stack deploy -c docker-compose.integrated.yml translation-app
+docker stack deploy -c docker-compose.yml translation-app
 
 # Access your app
 open http://localhost      # Translation service
-open http://localhost:3000 # Monitoring dashboard (admin/admin123)
 ```
 
-That's it! You now have a fully scalable translation service with monitoring running on Docker Swarm.
+That's it! You now have a fully scalable translation service running on Docker Swarm.
 
 ## 🤝 Contributing
 
