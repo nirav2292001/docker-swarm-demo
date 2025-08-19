@@ -20,21 +20,33 @@ This project consists of:
 
 ## 🚀 Quick Start
 
-### 1. Initialize Docker Swarm
+### Option 1: Complete Setup with Monitoring (Recommended)
 
-If you haven't already initialized Docker Swarm:
+**Just clone and run!** This is the simplest way to get everything running:
 
 ```bash
-# Initialize swarm mode (run on manager node)
+# 1. Clone the repository
+git clone <your-repo-url>
+cd <repo-name>
+
+# 2. Initialize Docker Swarm (if not already done)
 docker swarm init
 
-# For multi-node setup, join worker nodes using the token from init output
-# docker swarm join --token <token> <manager-ip>:2377
+# 3. Build images
+./build-images.sh  # or build manually (see below)
+
+# 4. Setup monitoring stack
+chmod +x setup-monitoring.sh
+./setup-monitoring.sh
+
+# 5. Deploy translation app with integrated monitoring
+export REACT_APP_API_URL=http://localhost:8000
+docker stack deploy -c docker-compose.integrated.yml translation-app
 ```
 
-### 2. Build Docker Images
+**That's it!** Your complete stack is now running with monitoring.
 
-Build the required images locally:
+### Manual Image Building (if build script doesn't exist)
 
 ```bash
 # Build backend image
@@ -47,35 +59,97 @@ docker build -t frontend:latest --build-arg REACT_APP_API_URL=http://localhost:8
 cd ..
 ```
 
-### 3. Deploy to Docker Swarm
+### Option 2: Basic Setup (Without Monitoring)
 
 ```bash
-# Set environment variables
-export REACT_APP_API_URL=http://localhost:8000
+# 1. Initialize Docker Swarm
+docker swarm init
 
-# Deploy the stack
+# 2. Build images (see manual building above)
+
+# 3. Deploy basic stack
+export REACT_APP_API_URL=http://localhost:8000
 docker stack deploy -c docker-compose.yml translation-app
 ```
 
-### 4. Verify Deployment
+### 🔍 Verify Deployment
 
 ```bash
-# Check service status
+# Check all services
 docker service ls
 
-# Check running containers
+# Check translation app services
 docker stack ps translation-app
+
+# Check monitoring services (if deployed)
+docker stack ps monitoring
 
 # View service logs
 docker service logs translation-app_backend
 docker service logs translation-app_frontend
 ```
 
-### 5. Access the Application
+### 🌐 Access Your Application
 
+**Translation Service:**
 - **Frontend**: http://localhost (port 80)
 - **Backend API**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/docs
+
+**Monitoring Dashboard (if deployed with integrated setup):**
+- **Grafana**: http://localhost:3000 (admin/admin123)
+- **Prometheus**: http://localhost:9090
+- **Node Exporter**: http://localhost:9100
+- **cAdvisor**: http://localhost:8080
+
+## � Monitorivng & Observability
+
+### MLflow Integration
+The backend automatically logs translation metrics:
+
+```bash
+# View MLflow logs locally
+cd backend
+ls mlflow_logs/
+
+# Access MLflow UI (when running locally)
+mlflow ui --backend-store-uri file:./mlflow_logs
+```
+
+Tracked metrics include:
+- Translation inference time
+- Input text length
+- Model parameters
+- Input/output artifacts
+
+### Prometheus & Grafana Stack
+When deployed with the integrated setup, you get comprehensive monitoring:
+
+**Metrics Collected:**
+- Container resource usage (CPU, memory, network, disk)
+- Docker Swarm cluster health
+- Service availability and response times
+- Custom application metrics
+- System-level metrics from all nodes
+
+**Pre-configured Dashboards:**
+- Docker Swarm Overview
+- Container Resource Usage
+- Service Performance Metrics
+- Node Health Monitoring
+
+**Accessing Monitoring:**
+```bash
+# Grafana (main dashboard)
+open http://localhost:3000
+# Default login: admin/admin123
+
+# Prometheus (raw metrics)
+open http://localhost:9090
+
+# Check monitoring stack status
+docker service ls | grep monitoring
+```
 
 ## 🔧 Local Development
 
@@ -363,6 +437,32 @@ curl -X POST "http://localhost:8000/translate" \
   "translated_text": "Hallo, wie geht es dir?"
 }
 ```
+
+## ⚡ TL;DR - Super Quick Setup
+
+**Yes, you can just clone and run the integrated file!** Here's the minimal setup:
+
+```bash
+# Clone repo
+git clone <your-repo-url>
+cd <repo-name>
+
+# One-time setup
+docker swarm init
+chmod +x *.sh
+./build-images.sh
+./setup-monitoring.sh
+
+# Deploy everything
+export REACT_APP_API_URL=http://localhost:8000
+docker stack deploy -c docker-compose.integrated.yml translation-app
+
+# Access your app
+open http://localhost      # Translation service
+open http://localhost:3000 # Monitoring dashboard (admin/admin123)
+```
+
+That's it! You now have a fully scalable translation service with monitoring running on Docker Swarm.
 
 ## 🤝 Contributing
 
