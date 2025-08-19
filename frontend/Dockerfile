@@ -3,10 +3,10 @@ FROM node:20-bullseye AS builder
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm install
-
 COPY . .
+
+RUN rm -rf node_modules package-lock.json \
+    && npm install
 
 
 RUN npm run build
@@ -21,7 +21,7 @@ ARG REACT_APP_API_URL
 ENV REACT_APP_API_URL=${REACT_APP_API_URL}
 
 # Create env.js dynamically
-RUN echo "window.env = { REACT_APP_API_URL: \"${REACT_APP_API_URL}\" };" > /usr/share/nginx/html/env.js
+RUN echo "window.env = { REACT_APP_API_URL: \"${REACTdo_APP_API_URL}\" };" > /usr/share/nginx/html/env.js
 
 COPY --from=builder /app/build /usr/share/nginx/html
 

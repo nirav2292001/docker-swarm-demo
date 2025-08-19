@@ -2,55 +2,31 @@ version: '3.8'
 
 services:
   backend:
-    build:
-      context: ./backend
-    container_name: fastapi-backend
+    image: backend:latest   # pre-build your backend image locally or push to registry
     ports:
-      - "${BACKEND_PORT}:8000"
-    volumes:
-      - ./backend/mlflow_logs:/mlflow_logs 
+      - "8000:8000"
     networks:
       - app-network
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
 
-  mlflow-ui:
-    image: ghcr.io/mlflow/mlflow:v2.12.1
-    ports:
-      - "5000:5000"
-    command: mlflow ui --backend-store-uri /mlflow_logs --host 0.0.0.0 --port 5000
-    volumes:
-      - ./backend/mlflow_logs:/mlflow_logs
-    networks:
-      - app-network
-
-  frontend-blue:
-    build:
-      context: ./frontend
-      args:
-        REACT_APP_API_URL: ${REACT_APP_API_URL}
-    container_name: react-frontend-blue
-    expose:
-      - "80"
+  frontend:
+    image: frontend:latest  # pre-build frontend image
     environment:
-      - REACT_APP_API_URL=${REACT_APP_API_URL}
+      REACT_APP_API_URL: ${REACT_APP_API_URL}
+    ports:
+    - "80:80"
     networks:
       - app-network
     depends_on:
       - backend
-
-
-  nginx:
-    image: nginx:alpine
-    container_name: nginx-proxy
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      - frontend-blue
-    networks:
-      - app-network
-      
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
 
 networks:
   app-network:
-    driver: bridge
+    driver: overlay
