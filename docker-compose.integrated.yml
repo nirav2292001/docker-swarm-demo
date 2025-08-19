@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Translation Backend with metrics
+  backend:
+    image: backend:latest
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+      - monitoring_monitoring  # Connect to monitoring network
+    environment:
+      - PROMETHEUS_MULTIPROC_DIR=/tmp
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "prometheus.io/scrape=true"
+        - "prometheus.io/port=8000"
+        - "prometheus.io/path=/metrics"
+
+  # Translation Frontend
+  frontend:
+    image: frontend:latest
+    environment:
+      REACT_APP_API_URL: ${REACT_APP_API_URL}
+    ports:
+      - "80:80"
+    networks:
+      - app-network
+      - monitoring_monitoring  # Connect to monitoring network
+    depends_on:
+      - backend
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "prometheus.io/scrape=true"
+        - "prometheus.io/port=80"
+
+networks:
+  app-network:
+    driver: overlay
+  monitoring_monitoring:
+    external: true  # Reference to monitoring stack network
+
+# External volumes for monitoring data persistence
+volumes:
+  prometheus_data:
+    external: true
+  grafana_data:
+    external: true
